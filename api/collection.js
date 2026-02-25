@@ -1,4 +1,13 @@
 export default async function handler(req, res) {
+  // 🔥 ADD CORS HEADERS
+  res.setHeader("Access-Control-Allow-Origin", "https://www.jameshowellfoundation.org");
+  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   try {
     const response = await fetch(
       "https://api.catalogit.app/api/public/accounts/16688/entries?size=200",
@@ -10,6 +19,7 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
+
     res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ error: error.toString() });
