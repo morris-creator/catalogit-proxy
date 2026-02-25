@@ -9,15 +9,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(
-      "https://api.catalogit.app/api/public/accounts/16688/entries?size=200",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
-        }
-      }
-    );
+   const allResults = [];
+let cursor = null;
 
+do {
+  const url = cursor
+    ? `https://api.catalogit.app/api/public/accounts/16688/entries?size=200&cursor=${cursor}`
+    : `https://api.catalogit.app/api/public/accounts/16688/entries?size=200`;
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+    }
+  });
+
+  const data = await response.json();
+
+  allResults.push(...data.results);
+  cursor = data.cursor;
+
+} while (cursor);
+
+res.status(200).json({ results: allResults });
     const data = await response.json();
 
     res.status(200).json(data);
