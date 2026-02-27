@@ -13,8 +13,8 @@ export default async function handler(req, res) {
 
     do {
       const url = cursor
-        ? `https://api.catalogit.app/api/public/accounts/16688/entries?size=200&cursor=${cursor}`
-        : `https://api.catalogit.app/api/public/accounts/16688/entries?size=200`;
+  ? `https://api.catalogit.app/api/v1/entries?size=200&cursor=${cursor}`
+  : `https://api.catalogit.app/api/v1/entries?size=200`;
 
       const response = await fetch(url, {
         headers: {
