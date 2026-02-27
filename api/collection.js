@@ -8,20 +8,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(
-      "https://api.catalogit.app/api/public/accounts/16688/entries?size=200",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
-        }
+  const response = await fetch(
+    "https://api.catalogit.app/api/public/accounts/16688/entries?size=200",
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
       }
-    );
+    }
+  );
 
-    const data = await response.json();
+  const data = await response.json();
 
-    return res.status(200).json({ results: data.results || [] });
+  return res.status(200).json({ results: data.results || [] });
 
-  } catch (error) {
-    return res.status(500).json({ error: error.toString() });
-  }
+} catch (error) {
+  return res.status(500).json({ error: error.toString() });
+}
 }
