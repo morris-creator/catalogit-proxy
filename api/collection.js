@@ -8,28 +8,33 @@ export default async function handler(req, res) {
   }
 
   try {
-    let allResults = [];
-let page = 1;
+    const allResults = [];
+let cursor = null;
 
-while (true) {
-  const url = `https://api.catalogit.app/api/public/accounts/16688/entries?size=200&page=${page}`;
-
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+do {
+  const response = await fetch(
+    "https://api.catalogit.app/api/public/accounts/16688/search",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+      },
+      body: JSON.stringify({
+        size: 200,
+        cursor: cursor
+      })
     }
-  });
+  );
 
   const data = await response.json();
 
-  if (!data.results || data.results.length === 0) break;
+  if (!data.results) break;
 
   allResults.push(...data.results);
+  cursor = data.cursor;
 
-  if (data.results.length < 200) break;
-
-  page++;
-}
+} while (cursor);
 
     return res.status(200).json({ results: allResults });
 
