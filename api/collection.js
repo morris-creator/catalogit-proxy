@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       if (!data.results) break;
 
       allResults.push(...data.results);
-      cursor = data.next_cursor; // important
+      cursor = data.cursor; // important
 
     } while (cursor);
 
