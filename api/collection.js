@@ -8,28 +8,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    const allResults = [];
-    let cursor = null;
+    let allResults = [];
+let page = 1;
 
-    do {
-      const url = cursor
-  ? `https://api.catalogit.app/api/v1/accounts/16688/entries?size=200&cursor=${cursor}`
-  : `https://api.catalogit.app/api/v1/accounts/16688/entries?size=200`;
+while (true) {
+  const url = `https://api.catalogit.app/api/public/accounts/16688/entries?size=200&page=${page}`;
 
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
-        }
-      });
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+    }
+  });
 
-      const data = await response.json();
+  const data = await response.json();
 
-      if (!data.results) break;
+  if (!data.results || data.results.length === 0) break;
 
-      allResults.push(...data.results);
-      cursor = data.cursor; // important
+  allResults.push(...data.results);
 
-    } while (cursor);
+  if (data.results.length < 200) break;
+
+  page++;
+}
 
     return res.status(200).json({ results: allResults });
 
