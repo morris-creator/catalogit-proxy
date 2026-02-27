@@ -8,35 +8,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const allResults = [];
-let cursor = null;
+    const response = await fetch(
+      "https://api.catalogit.app/api/public/accounts/16688/entries?size=200",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+        }
+      }
+    );
 
-do {
-  const response = await fetch(
-    "https://api.catalogit.app/api/public/accounts/16688/search",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
-      },
-      body: JSON.stringify({
-        size: 200,
-        cursor: cursor
-      })
-    }
-  );
+    const data = await response.json();
 
-  const data = await response.json();
-
-  if (!data.results) break;
-
-  allResults.push(...data.results);
-  cursor = data.cursor;
-
-} while (cursor);
-
-    return res.status(200).json({ results: allResults });
+    return res.status(200).json({ results: data.results || [] });
 
   } catch (error) {
     return res.status(500).json({ error: error.toString() });
