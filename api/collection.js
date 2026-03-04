@@ -3,19 +3,15 @@ export default async function handler(req, res) {
   try {
 
     let allResults = [];
-    let page = 1;
-    let hasMore = true;
+    let nextURL = "https://api.catalogit.app/api/v1/collection";
 
-    while (hasMore) {
+    while (nextURL) {
 
-      const response = await fetch(
-        `https://api.catalogit.app/api/v1/collection?page=${page}&page_size=200`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
-          }
+      const response = await fetch(nextURL, {
+        headers: {
+          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
         }
-      );
+      });
 
       if (!response.ok) {
         throw new Error(`CatalogIt API error: ${response.status}`);
@@ -23,12 +19,11 @@ export default async function handler(req, res) {
 
       const data = await response.json();
 
-      if (data.results && data.results.length > 0) {
+      if (data.results) {
         allResults = allResults.concat(data.results);
-        page++;
-      } else {
-        hasMore = false;
       }
+
+      nextURL = data.next; // CatalogIt provides the next page link
 
     }
 
