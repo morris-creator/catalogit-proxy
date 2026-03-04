@@ -1,27 +1,38 @@
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "https://www.jameshowellfoundation.org");
-  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
 
   try {
-  const response = await fetch(
-    "https://api.catalogit.app/api/public/accounts/16688/entries?size=200",
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+
+    let allResults = [];
+    let nextURL = "https://api.catalogit.app/api/v1/collection";
+
+    while (nextURL) {
+
+      const response = await fetch(nextURL, {
+        headers: {
+          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.results) {
+        allResults = allResults.concat(data.results);
       }
+
+      nextURL = data.next;
     }
-  );
 
-  const data = await response.json();
+    res.status(200).json({
+      count: allResults.length,
+      results: allResults
+    });
 
-  return res.status(200).json({ results: data.results || [] });
+  } catch (error) {
 
-} catch (error) {
-  return res.status(500).json({ error: error.toString() });
-}
+    res.status(500).json({
+      error: "CatalogIt proxy error",
+      details: error.message
+    });
+
+  }
 }
