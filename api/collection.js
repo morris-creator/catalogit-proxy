@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   try {
 
     let allResults = [];
-    let nextURL = "https://api.catalogit.app/api/v1/collection";
+    let nextURL = "https://api.catalogit.app/api/v1/collections";
 
     while (nextURL) {
 
@@ -13,6 +13,10 @@ export default async function handler(req, res) {
         }
       });
 
+      if (!response.ok) {
+        throw new Error(`CatalogIt API error: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.results) {
@@ -20,6 +24,7 @@ export default async function handler(req, res) {
       }
 
       nextURL = data.next;
+
     }
 
     res.status(200).json({
@@ -35,4 +40,5 @@ export default async function handler(req, res) {
     });
 
   }
+
 }
