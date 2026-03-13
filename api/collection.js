@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   try {
 
     let allResults = [];
-    let nextURL = "https://api.catalogit.app/api/v1/collection";
+    let nextURL = "https://api.catalogit.app/api/v1/entries";
 
     while (nextURL) {
 
