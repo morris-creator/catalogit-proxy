@@ -3,7 +3,7 @@ export default async function handler(req, res) {
   try {
 
     let allResults = [];
-   let nextURL = "https://api.catalogit.app/api/v1/orgs/16688/entries";
+    let nextURL = "https://api.catalogit.app/v1/orgs/16688/entries";
 
     while (nextURL) {
 
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         allResults = allResults.concat(data.results);
       }
 
-      nextURL = data.next; // CatalogIt provides the next page link
+      nextURL = data.next;
 
     }
 
