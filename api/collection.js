@@ -1,39 +1,17 @@
 export default async function handler(req, res) {
-
   try {
-
     const response = await fetch(
-      "https://api.catalogit.app/v1/entries/search",
+      "https://api.catalogit.app/api/public/accounts/16688/entries?size=200",
       {
-        method: "POST",
         headers: {
-          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          limit: 1000
-        })
+          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+        }
       }
     );
 
-    if (!response.ok) {
-      throw new Error(`CatalogIt API error: ${response.status}`);
-    }
-
     const data = await response.json();
-
-    res.status(200).json({
-      count: data.results?.length || 0,
-      results: data.results || []
-    });
-
+    res.status(200).json(data);
   } catch (error) {
-
-    res.status(500).json({
-      error: "CatalogIt proxy error",
-      details: error.message
-    });
-
+    res.status(500).json({ error: error.toString() });
   }
-
 }
