@@ -3,13 +3,14 @@ export default async function handler(req, res) {
   try {
 
     let allResults = [];
-    let nextURL = "https://api.catalogit.app/v1/orgs/16688/entries";
+    let nextURL = "https://api.catalogit.app/v1/entries";
 
     while (nextURL) {
 
       const response = await fetch(nextURL, {
         headers: {
-          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
+          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`,
+          "X-Organization-Id": "16688"
         }
       });
 
