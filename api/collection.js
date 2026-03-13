@@ -2,36 +2,15 @@ export default async function handler(req, res) {
 
   try {
 
-    let allResults = [];
-    let nextURL = "https://api.catalogit.app/v1/accounts/16688/entries?limit=200";
-
-    while (nextURL) {
-
-      const response = await fetch(nextURL, {
-        headers: {
-          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`,
-          "Content-Type": "application/json"
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`CatalogIt API error: ${response.status}`);
+    const response = await fetch("https://api.catalogit.app/v1/", {
+      headers: {
+        Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
       }
-
-      const data = await response.json();
-
-      if (data.results) {
-        allResults = allResults.concat(data.results);
-      }
-
-      nextURL = data.next;
-
-    }
-
-    res.status(200).json({
-      count: allResults.length,
-      results: allResults
     });
+
+    const text = await response.text();
+
+    res.status(200).send(text);
 
   } catch (error) {
 
