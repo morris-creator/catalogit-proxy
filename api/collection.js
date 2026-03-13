@@ -2,43 +2,35 @@ export default async function handler(req, res) {
 
   try {
 
-    const response = await fetch("https://api.catalogit.app/graphql", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`
-      },
-      body: JSON.stringify({
-        query: `
-          query {
-            entries(first: 1000) {
-              edges {
-                node {
-                  id
-                  properties
-                  media {
-                    path
-                    derivatives {
-                      public_highres {
-                        path
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        `
-      })
-    });
+    let allResults = [];
+    let nextURL = "https://api.catalogit.com/v1/entries";
 
-    const json = await response.json();
+    while (nextURL) {
 
-    const results = json.data.entries.edges.map(e => e.node);
+      const response = await fetch(nextURL, {
+        headers: {
+          Authorization: `Bearer ${process.env.CATALOGIT_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`CatalogIt API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.results) {
+        allResults = allResults.concat(data.results);
+      }
+
+      nextURL = data.next;
+
+    }
 
     res.status(200).json({
-      count: results.length,
-      results
+      count: allResults.length,
+      results: allResults
     });
 
   } catch (error) {
