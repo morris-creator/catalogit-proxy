@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
     await pdfParse(buffer, {
       pagerender: async function (pageData) {
         const content = await pageData.getTextContent();
-        const text = content.items.map(function (i) { return i.str; }).join(" ");
+                const text = content.items.map(function (i) { return i.str; }).join(" ").replace(/\s+/g, " ").trim();
         pageTexts.push(text);
         return text;
       }
