@@ -49,10 +49,13 @@ module.exports = async function handler(req, res) {
       return s
         // Fix PDF ligature splits: "fi ve-part" → "five-part", "fl at" → "flat", etc.
         .replace(/\b(ffi|ffl|fi|fl|ff)\s+([a-z])/g, '$1$2')
+        // Fix OCR artifact in scanned journals: "Set3 0.09" → "Set 30.09"
+        .replace(/\bSet(\d)\s+(\d\.\d{2}A?)\b/gi, 'Set $1$2')
         // All dash/hyphen variants → regular hyphen
         .replace(/[‐‑‒–—―−﹘﹣－]/g, '-')
-        // Leading zeros in date-like patterns: "08/31/99" → "8/31/99"
-        .replace(/(^|[\s(])0(\d(?:\/\d+)+)/g, '$1$2');
+        // Strip leading zeros from date-like patterns (all parts): "08/03/99" → "8/3/99"
+        .replace(/(^|[\s(])0(\d(?:\/\d+)+)/g, '$1$2')
+        .replace(/\/0(\d)/g, '/$1');
     }
 
     // Find the first page containing each term (case-insensitive, dash+date normalized)
