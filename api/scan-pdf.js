@@ -34,12 +34,18 @@ module.exports = async function handler(req, res) {
       }
     });
 
+        // Normalize leading zeros in date-like patterns so "08/31/99" matches "8/31/99"
+    function normDates(s) {
+      return s.replace(/(^|[\s(])0(\d(?:\/\d+)+)/g, '$1$2');
+    }
+
+    // Find the first page containing each term (case-insensitive, date-normalized)
     const matches = {};
     terms.forEach(function (term) {
       if (!term || term.length < 4) return;
-      const termLow = term.toLowerCase();
+      const termLow = normDates(term.toLowerCase());
       for (let i = 0; i < pageTexts.length; i++) {
-        if (pageTexts[i].toLowerCase().includes(termLow)) {
+        if (normDates(pageTexts[i].toLowerCase()).includes(termLow)) {
           matches[term] = i + 1;
           return;
         }
