@@ -1,4 +1,10 @@
-const pdfParse = require("pdf-parse");
+// api/scan-pdf.js  ─  Add this file to your catalogit-proxy project under /api/
+//
+// Also add to package.json dependencies:
+//   "pdf-parse": "^1.1.1"
+//
+// This endpoint downloads a PDF from a given URL, extracts text page by page,
+// and returns the first page number where each search term appears.
 
 module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -9,10 +15,11 @@ module.exports = async function handler(req, res) {
 
   const { url, terms } = req.body || {};
   if (!url || !Array.isArray(terms) || !terms.length) {
-    return res.status(400).json({ error: "url and terms[] required" });
+    return res.status(400).json({ error: "url (string) and terms (string[]) are required" });
   }
 
   try {
+    // Fetch the PDF from S3 (CatalogIt CDN)
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000);
     const pdfRes = await fetch(url, { signal: controller.signal });
@@ -23,30 +30,39 @@ module.exports = async function handler(req, res) {
     }
 
     const buffer = Buffer.from(await pdfRes.arrayBuffer());
-    const pageTexts = [];
+    const pdfParse = require("pdf-parse");
 
+    // Collect per-page text via the pagerender callback
+    const pageTexts = [];
     await pdfParse(buffer, {
       pagerender: async function (pageData) {
         const content = await pageData.getTextContent();
-                const text = content.items.map(function (i) { return i.str; }).join(" ").replace(/\s+/g, " ").trim();
+        // Collapse all whitespace (including double-spaces from line breaks) to single space
+        const text = content.items.map(function (i) { return i.str; }).join(" ").replace(/\s+/g, " ").trim();
         pageTexts.push(text);
         return text;
       }
     });
 
-        // Normalize leading zeros in date-like patterns so "08/31/99" matches "8/31/99"
-    function normDates(s) {
-      return s.replace(/(^|[\s(])0(\d(?:\/\d+)+)/g, '$1$2');
+    // Normalize text for comparison
+    function norm(s) {
+      return s
+        // Fix PDF ligature splits: "fi ve-part" → "five-part", "fl at" → "flat", etc.
+        .replace(/\b(ffi|ffl|fi|fl|ff)\s+([a-z])/g, '$1$2')
+        // All dash/hyphen variants → regular hyphen
+        .replace(/[‐‑‒–—―−﹘﹣－]/g, '-')
+        // Leading zeros in date-like patterns: "08/31/99" → "8/31/99"
+        .replace(/(^|[\s(])0(\d(?:\/\d+)+)/g, '$1$2');
     }
 
-    // Find the first page containing each term (case-insensitive, date-normalized)
+    // Find the first page containing each term (case-insensitive, dash+date normalized)
     const matches = {};
     terms.forEach(function (term) {
       if (!term || term.length < 4) return;
-      const termLow = normDates(term.toLowerCase());
+      const termLow = norm(term.toLowerCase());
       for (let i = 0; i < pageTexts.length; i++) {
-        if (normDates(pageTexts[i].toLowerCase()).includes(termLow)) {
-          matches[term] = i + 1;
+        if (norm(pageTexts[i].toLowerCase()).includes(termLow)) {
+          matches[term] = i + 1; // 1-indexed
           return;
         }
       }
