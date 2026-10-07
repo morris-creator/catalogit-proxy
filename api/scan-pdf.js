@@ -58,20 +58,24 @@ module.exports = async function handler(req, res) {
         .replace(/\/0(\d)/g, '/$1');
     }
 
-    // Find the first page containing each term (case-insensitive, dash+date normalized)
+    // Find pages containing each term (case-insensitive, dash+date normalized)
+    // matches: first page per term (existing behaviour, used for direct title matches)
+    // allMatches: ALL pages per term (used for seriesNumberMatch intersection)
     const matches = {};
+    const allMatches = {};
     terms.forEach(function (term) {
       if (!term || term.length < 4) return;
       const termLow = norm(term.toLowerCase());
       for (let i = 0; i < pageTexts.length; i++) {
         if (norm(pageTexts[i].toLowerCase()).includes(termLow)) {
-          matches[term] = i + 1; // 1-indexed
-          return;
+          if (!(term in matches)) matches[term] = i + 1; // 1-indexed, first occurrence
+          if (!allMatches[term]) allMatches[term] = [];
+          allMatches[term].push(i + 1);
         }
       }
     });
 
-    res.json({ pages: pageTexts.length, matches: matches });
+    res.json({ pages: pageTexts.length, matches: matches, allMatches: allMatches });
 
   } catch (err) {
     console.error("scan-pdf error:", err.message);
